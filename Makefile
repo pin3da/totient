@@ -2,15 +2,19 @@ CC=g++
 CFLAGS=-std=c++11 -O2 -Wall
 LDFLAGS=-lzmqpp -lzmq -lpthread -lsfml-audio -luuid
 SOURCE=./src
+TARGET=./bin
 
-all: peer tracker
+all: dir $(TARGET)/peer $(TARGET)/tracker
 
-peer: $(SOURCE)/peer.cc
-	$(CC) $(CFLAGS) $(LDFLAGS) -o peer $(SOURCE)/peer.cc
+dir:
+	mkdir -p $(TARGET)
 
-tracker: $(SOURCE)/tracker.cc
-	$(CC) $(CFLAGS) $(LDFALGS) -o tracker $(SOURCE)/tracker.cc
+$(TARGET)/peer: $(SOURCE)/peer.cc
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET)/peer $(SOURCE)/peer.cc
+
+$(TARGET)/tracker: $(SOURCE)/tracker.cc
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET)/tracker $(SOURCE)/tracker.cc
 
 
 clean:
-	rm -f peer tracker
+	rm -rf $(TARGET)/*
