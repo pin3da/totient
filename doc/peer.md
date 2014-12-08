@@ -11,18 +11,20 @@ and sends an [ADD request](https://github.com/pin3da/totient/blob/master/doc/tra
 
 When a peer decides to share a file it most be previously placed in the 'files' folder, after that you must specify explicitly that you want to share that specifical file, this will call a bash script that will 'slice and dice' the files, add it to the 'files folder' as well as the list file in the same folder, and sends the report of the new parts to the tracker, it also creates .totient file and sends it to the .totient tracker (not yet).
 
-## Sending a part
-
-The only petitions peers take care of is to send a specifical part to a specifical peer (lazy bastards), in order to this the message sent from the other peer MUST contain:
-
-[0] - The keyword 'send'
-[1] - The SHA of the part it needs
-
 The identity is managed by zmq so it will be automatically appended as a message arrives.
 
 ## Leaving the network
 
 You can explicitly tell a peer to leave the network, which it will do after finishing downloading the current part (if not it will leave immediately) sending a [Remove request](https://github.com/pin3da/totient/blob/master/doc/tracker.md#remove) to the tracker.
+
+#Requests
+
+## Sending a part
+
+The only petitions peers take care of is to send a specifical part to a specifical peer (lazy bastards), in order to this the message sent from the other peer MUST contain:
+
+[0] - The keyword 'send'.
+[1] - The SHA of the part it needs.
 
 
 
