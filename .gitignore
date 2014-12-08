@@ -3,3 +3,5 @@ bin/tracker
 bin/files
 bin/pieces
 *.totient
+*~
+*.o

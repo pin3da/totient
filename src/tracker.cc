@@ -9,14 +9,14 @@ unordered_map<string, set<pair<string, string>>> parts;
 
 void add_rem_peer(message &request, bool add = true) {
   string ip, port, sha;
-  int sha_number;
+  size_t sha_number;
 
   request >> ip >> port >> sha_number;
 
   while (sha_number-- > 0) {
     request >> sha;
     if (add)
-      parts[sha].insert({ip, port});
+      parts[sha].insert({ip, port});      
     else
       parts[sha].erase({ip, port});
   }
