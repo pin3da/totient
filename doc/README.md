@@ -38,13 +38,13 @@ Is a bencoding dictionary with the following keys
 }
 ```
 
-**NOTES :** 
+**NOTES :**
 - Unlike bittorrent's description, this metainfo file (.totient) just keeps track the info for *one* file, not a whole directory.
 - We are NOT using JSON notation for the metainfo file, is just to show where the keys are placed.
 
-## Node's description
+## Peer's description
 
-Works as a peer in the network, see the full description [here](http://github.com/pin3da/totient/tree/master/doc/node.md)
+Just another peer in the ~wall~ network, see the full description [here](http://github.com/pin3da/totient/tree/master/doc/peer.md)
 
 ## Tracker's description
 
@@ -60,10 +60,10 @@ Tracker requests are a bencoded dictionary that MUST have the following keys:
 ```json
 {
   "info_hash":  "The 20 byte sha1 hash of the bencoded form of the info value from the metainfo file.",
-  "peer_id": "A string of length 20 which this downloader uses as its id. Each downloader generates 
+  "peer_id": "A string of length 20 which this downloader uses as its id. Each downloader generates
     its own id at random at the start of a new download.",
   "ip": "An optional parameter giving the IP (or dns name) which this peer is at",
-  "port": "The port number this peer is listening on. Common behavior is for a downloader to try 
+  "port": "The port number this peer is listening on. Common behavior is for a downloader to try
     to listen on port 6881 and if that port is taken try 6882, then 6883, etc. and give up after 6889.",
 }
 ```
