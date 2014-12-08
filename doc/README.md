@@ -44,7 +44,7 @@ Is a bencoding dictionary with the following keys
 
 ## Peer's description
 
-Just another peer in the ~wall~ network, see the full description [here](http://github.com/pin3da/totient/tree/master/doc/peer.md)
+Just another peer in the ~~wall~~ network, see the full description [here](http://github.com/pin3da/totient/tree/master/doc/peer.md)
 
 ## Tracker's description
 

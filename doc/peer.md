@@ -1,4 +1,4 @@
-Totient's Node
+Totient's Peer
 ==============
 
 
