@@ -38,7 +38,7 @@ Tracker requests MUST have the following parts:
 
 - [0] - info_hash: The 20 byte sha1 hash of the bencoded form of the info value from the metainfo file.
 - [1] - peer_id: A string of length 20 which this downloader uses as its id. Each downloader generates its own id at random at the start of a new download.
-- [2] - ip: An optional parameter giving the IP (or dns name) which this peer is at
+- [2] - ip: IP (or dns name) which this peer is at
 - [3] - port: The port number this peer is listening on. Common behavior is for a downloader to try  to listen on port 6881 and if that port is taken try 6882, then 6883, etc. and give up after 6889.
 
 ### Tracker response
