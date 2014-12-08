@@ -7,7 +7,8 @@ TARGET=./bin
 all: dir $(TARGET)/peer $(TARGET)/tracker
 
 dir:
-	mkdir -p $(TARGET)
+	mkdir -p $(TARGET)/files
+	mkdir -p $(TARGET)/pieces
 
 $(TARGET)/peer: $(SOURCE)/peer.cc
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET)/peer $(SOURCE)/peer.cc
