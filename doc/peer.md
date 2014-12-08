@@ -23,8 +23,8 @@ You can explicitly tell a peer to leave the network, which it will do after fini
 
 The only petitions peers take care of is to send a specifical part to a specifical peer (lazy bastards), in order to this the message sent from the other peer MUST contain:
 
-[0] - The keyword 'send'.
-[1] - The SHA of the part it needs.
+- [0] - The keyword 'send'.
+- [1] - The SHA of the part it needs.
 
 
 
