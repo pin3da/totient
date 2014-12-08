@@ -29,6 +29,10 @@ non-restricted way, so if you want to connect to the Totient cloud you just need
 
     make clean
 
+## Documentation
+
+See the full documentation at [doc](https://github.com/pin3da/totient/tree/master/doc)
+
 ## Contribute
 
 Feel free to fork, modify and send us a pull request. We will respond as soon as possible.
