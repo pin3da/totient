@@ -53,9 +53,7 @@ At the first time you need to know who has the parts that interest you. This is 
 
 ## Communication
 
-### Trackers
-
-#### Request
+### Tracker request
 
 Tracker requests are a bencoded dictionary that MUST have the following keys:
 
@@ -69,7 +67,7 @@ Tracker requests are a bencoded dictionary that MUST have the following keys:
     to listen on port 6881 and if that port is taken try 6882, then 6883, etc. and give up after 6889.",
 }
 ```
-#### Response
+### Tracker response
 
 Tracker responses are a bencoded dictionary that MUST have the following keys:
 
@@ -85,4 +83,20 @@ Tracker responses are a bencoded dictionary that MUST have the following keys:
   ]
 }
 ```
+
+### Peer request
+
+Peer request MUST have the following parts.
+
+- [0] : "piece", word to identify the request kind.
+- [1] : SHA1, SHA1 of piece.
+- [2] : offset
+- [3] : chunk_size
+
+### Peer response
+
+Peer response MUST have the followin parts.
+
+- [0] : state, "OK" if the part was found, "NF" otherwise.
+- [1] : if [0] is "OK" must have an array with the data.
 
