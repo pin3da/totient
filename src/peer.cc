@@ -111,27 +111,30 @@ void download_thread(void * _ctx) {
 void play_thread(void *_ctx){
   sf::Music music;
   vector<string> playlist;
+  bool playflag = true;
   
   context *ctx = (context*)_ctx;
   socket main(*(ctx), socket_type::dealer);
   main.connect("inproc://playlist");
-  unsigned int pos = 0;
+  int pos = 0;
   
   poller pol;
   pol.add(main);
   //it = playlist.begin();
   while(true){
     //cout << "here" << endl;
+    //cout << pos << endl;
     if (playlist.size() > 0 and pos < playlist.size()){
       string name = playlist[pos];
+      //cout << pos << endl;
       //cout << name << endl << pos << endl << playlist.size() << endl;
-      if (music.getStatus() == 0 and music.openFromFile("files/" + name)){
+      if (music.getStatus() == 0 and music.openFromFile("files/" + name) and playflag){
         music.play();
         pos++;
       }
     }
   
-    if(pol.poll(10)){
+    if(pol.poll(100)){
       if(pol.has_input(main)){
         message incmsg;
         main.receive(incmsg);
@@ -143,7 +146,27 @@ void play_thread(void *_ctx){
           playlist.push_back(filename);
         } else if (command == "next"){
           music.stop();
-        }        
+        } else if (command == "prev"){
+          pos = pos - 2;
+          if (pos < 0)
+            pos = 0;
+          music.stop();
+          //cout << pos << endl;
+        } else if (command == "stop" and playflag){
+          playflag = false;
+          pos--;
+          if (pos < 0)
+            pos = 0;
+          music.stop();         
+        } else if(command == "play" and not playflag){
+          playflag = "true";
+        } else if(command == "del" and playlist.size() > 0){
+          pos--;
+          if (pos < 0)
+            pos = 0;
+          playlist.erase(playlist.begin() + pos);
+          music.stop();
+        }
       }
     }
   } 
@@ -211,14 +234,17 @@ int main(int argc, char **argv) {
       message p_command;
       p_command << command << filename;
       playlist_t.send(p_command);
-    } else if (command == "next"){
+    } else if (command == "next" or command == "prev" or command == "stop" or command == "play" or "del"){
       message p_command;
       p_command << command;
       playlist_t.send(p_command);
     }
   }
 
-  getchar();
+  download_task.detach();
+  playlist_task.detach();
+  download_task.~thread();
+  playlist_task.~thread();
   cout << "Bye bye" << endl;
 
   return 0;
