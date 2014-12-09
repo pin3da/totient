@@ -7,63 +7,55 @@ using namespace zmqpp;
 
 unordered_map<string, set<pair<string, string>>> parts;
 
-void add_rem_peer (message &incmsg, bool add = true){
+void add_rem_peer(message &request, bool add = true) {
   string ip, port, sha;
   int sha_number;
-  
-  incmsg >> ip;
-  incmsg >> port;
-  incmsg >> sha_number;
-  
-  while(sha_number > 0){
-    incmsg >> sha;
+
+  request >> ip >> port >> sha_number;
+
+  while (sha_number-- > 0) {
+    request >> sha;
     if (add)
       parts[sha].insert({ip, port});
     else
       parts[sha].erase({ip, port});
-    sha_number--;  
   }
-  
 }
 
-void search_part(message &incmsg){
+void search_part(message &request) {
   string sha, ip, port;
-  incmsg >> sha;
-  incmsg >> ip;
-  incmsg >> port;
-  
-  
+
+  request >> sha >> ip >> port;
+
   context ctx;
   string temp_peer_endpoint = "tcp://" + ip + ":" + port;
   socket temp_peer(ctx, socket_type::dealer);
   temp_peer.connect(temp_peer_endpoint);
-  
-  message outmsg;  
-  
-  if (parts[sha].size() > 0){
-    outmsg << parts[sha].size();
-    for(set<pair<string, string>>::iterator it = parts[sha].begin(); it != parts[sha].end(); ++it){
-      outmsg << it->first;
-      outmsg << it->second;
-    }    
+
+  message response;
+
+  if (parts[sha].size() > 0) {
+    response << parts[sha].size();
+    for (auto it : parts[sha])
+      response << it.first << it.second;
   } else {
-    outmsg << "NF";
+    response << "NF";
   }
-  
-  temp_peer.send(outmsg);
+
+  temp_peer.send(response);
 }
 
-void dispatch_peer(message &incmsg){
+void dispatch_peer(message &request){
   string id, command;
-  incmsg >> id;
-  incmsg >> command;
-  
+  request >> id;
+  request >> command;
+
   if (command == "add") {
-    add_rem_peer(incmsg);
+    add_rem_peer(request);
   } else if (command == "rem") { //Losing my religion
-    add_rem_peer (incmsg, false);
+    add_rem_peer (request, false);
   } else if (command == "search"){
-    search_part (incmsg);
+    search_part (request);
   }
 }
 
@@ -71,24 +63,24 @@ void dispatch_peer(message &incmsg){
 int main(){
   const string peer_endpoint = "tcp://*:6667";
   context ctx;
-  
+
   socket peers(ctx, socket_type::router);
   peers.bind(peer_endpoint);
-  
-  poller pol;  
+
+  poller pol;
   pol.add(peers);
-  
-  message incmsg;
-  
+
+  message request;
+
   while (true){
     if (pol.poll()){
       if (pol.has_input(peers)){
-        peers.receive(incmsg);
-        dispatch_peer(incmsg);
+        peers.receive(request);
+        dispatch_peer(request);
       }
     }
   }
-  
+
   return 0;
 }
 
