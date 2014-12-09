@@ -5,7 +5,6 @@ if [ "$#" -lt 1 ]; then
   exit 1
 fi
 
-
 CHUNK_SIZE=256000
 split -b $CHUNK_SIZE $1 current
 
@@ -32,4 +31,3 @@ for i in current*; do
   echo $name >> $TARGET
   mv $i pieces/$name
 done
-
