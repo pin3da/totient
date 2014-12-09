@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-std=c++11 -O2 -Wall
+CFLAGS=-std=c++11 -O3 -Wall
 LDFLAGS=-lzmqpp -lzmq -lpthread -lsfml-audio -luuid
 SOURCE=./src
 TARGET=./bin

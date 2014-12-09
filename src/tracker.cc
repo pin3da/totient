@@ -16,7 +16,7 @@ void add_rem_peer(message &request, bool add = true) {
   while (sha_number-- > 0) {
     request >> sha;
     if (add)
-      parts[sha].insert({ip, port});      
+      parts[sha].insert({ip, port});
     else
       parts[sha].erase({ip, port});
   }
