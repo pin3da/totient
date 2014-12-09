@@ -121,17 +121,17 @@ void play_thread(void *_ctx){
   pol.add(main);
   //it = playlist.begin();
   while(true){
-    cout << "here" << endl;
+    //cout << "here" << endl;
     if (playlist.size() > 0 and pos < playlist.size()){
       string name = playlist[pos];
-      cout << "here " << name << endl << pos << endl << playlist.size() << endl;
+      //cout << name << endl << pos << endl << playlist.size() << endl;
       if (music.getStatus() == 0 and music.openFromFile("files/" + name)){
         music.play();
         pos++;
       }
     }
   
-    if(pol.poll()){
+    if(pol.poll(10)){
       if(pol.has_input(main)){
         message incmsg;
         main.receive(incmsg);
@@ -141,6 +141,8 @@ void play_thread(void *_ctx){
           string filename;
           incmsg >> filename;
           playlist.push_back(filename);
+        } else if (command == "next"){
+          music.stop();
         }        
       }
     }
@@ -207,7 +209,11 @@ int main(int argc, char **argv) {
       cout << "Enter the name of the file that you want to hear (must be in the files dir)" << endl;
       cin >> filename;
       message p_command;
-      p_command << "add" << filename;
+      p_command << command << filename;
+      playlist_t.send(p_command);
+    } else if (command == "next"){
+      message p_command;
+      p_command << command;
       playlist_t.send(p_command);
     }
   }
