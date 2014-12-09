@@ -66,14 +66,16 @@ namespace totient {
       int piece_length, length;
       std::vector<std::string> pieces;
 
-      entry (const std::string filename) {
+      entry() {}
+
+      entry (const std::string &filename) {
         std::ifstream totient_file(filename);
         totient_file >> tracker_url >> name >> piece_length >> length;
         size_t num_parts = (length + piece_length - 1 ) / piece_length;
         pieces.resize(num_parts);
         missing = fenwick_tree(num_parts);
         current_parts = 0;
-        for (int i = 0; i < pieces.size(); ++i) {
+        for (size_t i = 0; i < pieces.size(); ++i) {
           totient_file >> pieces[i];
           missing.add(i, 1);
         }

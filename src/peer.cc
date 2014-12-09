@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <cstdio>
+#include <thread>
 #include <set>
 
 #include "utils.cc"
@@ -12,12 +13,9 @@ using namespace zmqpp;
 
 #define PIECES_PATH  "./pieces/list"
 
-// Begin peer state
 
 string address, port, tracker_ip, tracker_port;
-unordered_map<string, totient::entry> downloads;
 
-// End peer state
 
 void wake_up(socket &tracker) {
   set<string> pieces;
@@ -60,7 +58,7 @@ bool  share_file(socket &tracker, string &filename) {
 
   request << ADD << address << port << totient_file.pieces.size();
 
-  for (int i = 0; i < totient_file.pieces.size(); ++i)
+  for (size_t i = 0; i < totient_file.pieces.size(); ++i)
     request << totient_file.pieces[i];
 
   tracker.send(request);
@@ -68,7 +66,8 @@ bool  share_file(socket &tracker, string &filename) {
   return true;
 }
 
-bool download_file(socket &tracker, string &filename) {
+bool download_file(socket &tracker, unordered_map<string, totient::entry> &downloads, string &filename,
+      socket &download_t) {
   filename = "./totient/" + filename + ".totient";
   if (!file_exists(filename))
     return false;
@@ -78,11 +77,35 @@ bool download_file(socket &tracker, string &filename) {
     downloads[filename] = entry;
   }
 
+  message request;
+  request << "push";
+
+  download_t.send(request);
+
   return true;
 }
 
 void play_song(const string &filename) {
 
+}
+
+void download_thread(void * _ctx) {
+  context *ctx= (context *)_ctx;
+  socket cli(*(ctx), socket_type::dealer);
+  cli.connect("inproc://download");
+
+  while (true) {
+    message request;
+    cli.receive(request);
+    string command;
+    request >> command;
+    if (command == "quit")
+      break;
+
+    else {
+      cout << string_color("@@@ Received request in download thread", GREEN) << endl;
+    }
+  }
 }
 
 int main(int argc, char **argv) {
@@ -104,6 +127,16 @@ int main(int argc, char **argv) {
 
   wake_up(tracker);
 
+
+  // Peer state
+  unordered_map<string, totient::entry> downloads;
+  // End peer state
+
+  socket download_t(ctx, socket_type::dealer);
+  download_t.bind("inproc://download");
+
+  thread download_task(download_thread, (void *) &ctx);
+
   while (true) {
     string command;
 
@@ -124,7 +157,7 @@ int main(int argc, char **argv) {
     } else if (command == "download") {
       cout << "Enter the name of the file that you want to download (must be in the totient dir)" << endl;
       cin >> filename;
-      if (download_file(tracker, filename))
+      if (download_file(tracker, downloads, filename, download_t))
         cout << string_color("Download in process", GREEN) << endl;
       else
         cout << string_color("The file does not exist", RED) << endl;
