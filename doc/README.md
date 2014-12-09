@@ -71,3 +71,38 @@ Peer response MUST have the followin parts.
 - [0] : state, "OK" if the part was found, "NF" otherwise.
 - [1] : if [0] is "OK" must have an array with the data.
 
+
+## Sockets' definition
+
+
+
+        __________
+       | TRACKER  |
+       |          |
+       |          |
+       |          |
+       |_/|\____|_|
+          |     |
+      ROUTER   DEALER
+       (bind)  (connect)
+          |     |
+          |     |
+          |     |
+          |     |
+          |     |
+          |     |
+          |     |
+      DEALER   ROUTER
+    (connect)  (bind)
+          |     |
+        __|____ | _                          ___________
+       |  |    \|/ |  DEALER        ROUTER  |   PEER    |
+       |           | (connect)       (bind) |           |
+       |         ----------------------------->         |
+       |           |                        |           |
+       |           |                        |           |
+       | PEER    <----------------------------          |
+       |__________ | ROUTER         DEALER  |___________|
+                     (bund)        (connect)
+
+
