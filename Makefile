@@ -18,4 +18,4 @@ $(TARGET)/tracker: $(SOURCE)/tracker.cc
 
 
 clean:
-	rm -rf $(TARGET)/*
+	rm -rf $(TARGET)/peer $(TARGET)/tracker
