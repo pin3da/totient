@@ -166,6 +166,10 @@ void play_thread(void *_ctx){
             pos = 0;
           playlist.erase(playlist.begin() + pos);
           music.stop();
+        } else if(command == "pause" and playflag){
+          music.pause();
+        } else if(command == "play" and playflag and playlist.size() > 0){
+          music.play();
         }
       }
     }
@@ -234,7 +238,7 @@ int main(int argc, char **argv) {
       message p_command;
       p_command << command << filename;
       playlist_t.send(p_command);
-    } else if (command == "next" or command == "prev" or command == "stop" or command == "play" or "del"){
+    } else if (command == "next" or "prev" or "stop" or "play" or "del" or "pause"){
       message p_command;
       p_command << command;
       playlist_t.send(p_command);
