@@ -1,6 +1,9 @@
 #include <string>
 #include <vector>
 
+#define ADD "add"
+
+/*
 namespace tracker {
 
   struct peer {
@@ -34,3 +37,4 @@ namespace totient {
     static metainfo decode(const std::string &benc) {}
   };
 }
+*/
