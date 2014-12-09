@@ -15,6 +15,7 @@ using namespace zmqpp;
 // Begin peer state
 
 string address, port, tracker_ip, tracker_port;
+unordered_map<string, totient::entry> downloads;
 
 // End peer state
 
@@ -44,7 +45,7 @@ void wake_up(socket &tracker) {
 }
 
 bool  share_file(socket &tracker, string &filename) {
-  filename = "files/" + filename;
+  filename = "./files/" + filename;
   if (!file_exists(filename))
     return false;
 
@@ -52,29 +53,32 @@ bool  share_file(socket &tracker, string &filename) {
   cerr << string_color(command, BLUE) << endl;
   system(command.c_str());
 
-  ifstream totient_file(filename + ".totient");
-  string tracker_url, name;
-  int piece_length, length;
-  totient_file >> tracker_url >> name >> piece_length >> length;
-  size_t num_parts = (length + piece_length - 1 ) / piece_length;
+
+  totient::entry totient_file(filename + ".totient");
 
   message request;
 
-  request << ADD << address << port << num_parts;
+  request << ADD << address << port << totient_file.pieces.size();
 
-  string part;
-  while (totient_file >> part) {
-    request << part;
-  }
+  for (int i = 0; i < totient_file.pieces.size(); ++i)
+    request << totient_file.pieces[i];
 
   tracker.send(request);
 
   return true;
 }
 
-void download_file(socket &tracker, const string &filename) {
+bool download_file(socket &tracker, string &filename) {
+  filename = "./totient/" + filename + ".totient";
+  if (!file_exists(filename))
+    return false;
 
+  if (downloads.count(filename) == 0) {
+    totient::entry entry(filename);
+    downloads[filename] = entry;
+  }
 
+  return true;
 }
 
 void play_song(const string &filename) {
@@ -120,7 +124,10 @@ int main(int argc, char **argv) {
     } else if (command == "download") {
       cout << "Enter the name of the file that you want to download (must be in the totient dir)" << endl;
       cin >> filename;
-      download_file(tracker, filename);
+      if (download_file(tracker, filename))
+        cout << string_color("Download in process", GREEN) << endl;
+      else
+        cout << string_color("The file does not exist", RED) << endl;
     } else if (command == "play") {
       cout << "Enter the name of the file that you want to hear (must bein the files dir)" << endl;
       cin >> filename;

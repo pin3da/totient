@@ -45,10 +45,9 @@ void search_part(message &request) {
   temp_peer.send(response);
 }
 
-void dispatch_peer(message &request){
+void dispatch_peer(message &request) {
   string id, command;
-  request >> id;
-  request >> command;
+  request >> id >> command;
 
   if (command == "add") {
     add_rem_peer(request);
