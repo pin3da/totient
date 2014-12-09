@@ -2,3 +2,4 @@ bin/peer
 bin/tracker
 bin/files
 bin/pieces
+*.totient
