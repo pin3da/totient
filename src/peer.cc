@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <thread>
 #include <set>
-
+#include <SFML/Audio.hpp>
 #include "utils.cc"
 
 using namespace std;
@@ -108,6 +108,45 @@ void download_thread(void * _ctx) {
   }
 }
 
+void play_thread(void *_ctx){
+  sf::Music music;
+  vector<string> playlist;
+  
+  context *ctx = (context*)_ctx;
+  socket main(*(ctx), socket_type::dealer);
+  main.connect("inproc://playlist");
+  unsigned int pos = 0;
+  
+  poller pol;
+  pol.add(main);
+  //it = playlist.begin();
+  while(true){
+    cout << "here" << endl;
+    if (playlist.size() > 0 and pos < playlist.size()){
+      string name = playlist[pos];
+      cout << "here " << name << endl << pos << endl << playlist.size() << endl;
+      if (music.getStatus() == 0 and music.openFromFile("files/" + name)){
+        music.play();
+        pos++;
+      }
+    }
+  
+    if(pol.poll()){
+      if(pol.has_input(main)){
+        message incmsg;
+        main.receive(incmsg);
+        string command;
+        incmsg >> command;
+        if (command == "add"){
+          string filename;
+          incmsg >> filename;
+          playlist.push_back(filename);
+        }        
+      }
+    }
+  } 
+}
+
 int main(int argc, char **argv) {
 
   if (argc < 5) {
@@ -134,8 +173,11 @@ int main(int argc, char **argv) {
 
   socket download_t(ctx, socket_type::dealer);
   download_t.bind("inproc://download");
+  socket playlist_t(ctx, socket_type::dealer);
+  playlist_t.bind("inproc://playlist");
 
   thread download_task(download_thread, (void *) &ctx);
+  thread playlist_task(play_thread, (void *) &ctx);
 
   while (true) {
     string command;
@@ -161,13 +203,16 @@ int main(int argc, char **argv) {
         cout << string_color("Download in process", GREEN) << endl;
       else
         cout << string_color("The file does not exist", RED) << endl;
-    } else if (command == "play") {
-      cout << "Enter the name of the file that you want to hear (must bein the files dir)" << endl;
+    } else if (command == "add") {
+      cout << "Enter the name of the file that you want to hear (must be in the files dir)" << endl;
       cin >> filename;
-      play_song(filename);
+      message p_command;
+      p_command << "add" << filename;
+      playlist_t.send(p_command);
     }
   }
 
+  getchar();
   cout << "Bye bye" << endl;
 
   return 0;
