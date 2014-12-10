@@ -68,19 +68,16 @@ bool  share_file(socket &tracker, string &_filename) {
   return true;
 }
 
-bool download_file(socket &tracker, unordered_map<string, totient::entry> &downloads, string &filename,
-      socket &download_t) {
-  filename = "./totient/" + filename + ".totient";
+bool download_file(socket &tracker, unordered_map<string, totient::entry> &downloads, const string &_filename,
+    socket &download_t) {
+  string filename = "./totient/" + _filename + ".totient";
   if (!file_exists(filename))
     return false;
 
-  if (downloads.count(filename) == 0) {
-    totient::entry entry(filename);
-    downloads[filename] = entry;
-  }
+  downloads[filename] = totient::entry(filename);
 
   message request;
-  request << "push";
+  request << "push" << filename;
 
   download_t.send(request);
 
@@ -94,18 +91,74 @@ void play_song(const string &filename) {
 void download_thread(void * _ctx) {
   context *ctx= (context *)_ctx;
   socket cli(*(ctx), socket_type::dealer);
+  socket tracker(*(ctx), socket_type::dealer);
+  socket listen_tracker(*(ctx), socket_type::dealer);
   cli.connect("inproc://download");
+  tracker.connect("tcp://" + tracker_ip + ":" + tracker_port);
+  listen_tracker.bind("tcp://*:" + port);
 
+  unordered_map<string, totient::entry> downloads;
+
+  poller pol;
+  pol.add(cli);
+  pol.add(tracker);
+  pol.add(listen_tracker);
+
+  int credit = 5;
   while (true) {
-    message request;
-    cli.receive(request);
-    string command;
-    request >> command;
-    if (command == "quit")
-      break;
 
-    else {
-      cerr << string_color("@@@ Received request in download thread", GREEN) << endl;
+    if (credit and downloads.size() > 0) {
+      totient::entry &cur_entry = downloads.begin()->second;
+      string hash;
+      do {
+        if (cur_entry.finish()) {
+          message request;
+          request << "pop" << downloads.begin()->first;
+          downloads.erase(downloads.begin());
+        }
+        hash = cur_entry.next();
+      } while (file_exists("./pieces/" + hash));
+
+      message request;
+      request << SEARCH << hash << address << port;
+      tracker.send(request);
+      credit--;
+      // cout << "SENT : " << SEARCH << " " << hash << "  " << address << " " << port << endl;
+    }
+
+    if (pol.poll(100)) {
+      if (pol.has_input(cli)) {
+        message request;
+        cli.receive(request);
+        string command;
+        request >> command;
+        if (command == "quit")
+          break;
+        //  cerr << string_color("@@@ Received request in download thread", GREEN) << endl;
+
+        else if (command == "push") {
+          string filename;
+          request >> filename;
+          downloads[filename] = totient::entry(filename);
+        }
+      }
+      if (pol.has_input(listen_tracker)) {
+        message request;
+        listen_tracker.receive(request);
+        string command;
+        request >> command;
+        if (command == SEARCH) {
+          size_t peers_length;
+          request >> peers_length;
+          cerr << "Search response - peers_length: " << peers_length << endl;
+          vector<pair<string, string>> peers(peers_length);
+          for (size_t i = 0; i < peers_length; ++i) {
+            request >> peers[i].first;
+            request >> peers[i].second;
+            cerr << " - Peer : " << peers[i].first << " " << peers[i].second << endl;
+          }
+        }
+      }
     }
   }
 }
@@ -177,7 +230,7 @@ void play_thread(void *_ctx){
 int main(int argc, char **argv) {
 
   if (argc < 5) {
-    cout << "Usage: " << argv[0] << "address port tracker_ip tracker_port" << endl;
+    cout << "Usage: " << argv[0] << " address port tracker_ip tracker_port" << endl;
     exit(1);
   }
 
@@ -215,7 +268,7 @@ int main(int argc, char **argv) {
   while (true) {
     string command;
 
-    system("clear");
+    // system("clear");
     cout << notification;
     notification = "";
     cout << "    Totient P2P file sharing." << endl;

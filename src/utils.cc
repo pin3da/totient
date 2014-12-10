@@ -7,6 +7,7 @@
 
 #define ADD "add"
 #define REM "rem"
+#define SEARCH "search"
 
 enum COLOR { RED, GREEN, BLUE, GRAY};
 
@@ -60,10 +61,9 @@ class fenwick_tree {
 
 namespace totient {
   class entry {
-    private:
+    public:
       std::vector<int> missing;
       int current_parts;
-    public:
       std::string tracker_url, name;
       int piece_length, length;
       std::vector<std::string> pieces;
@@ -91,6 +91,10 @@ namespace totient {
         std::swap(missing[index], missing[pieces.size() - current_parts - 1]);
         current_parts++;
         return pieces[index2];
+      }
+
+      bool finish() {
+        return size_t(current_parts) >= pieces.size();
       }
   };
 

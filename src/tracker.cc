@@ -32,6 +32,7 @@ void search_part(message &request) {
 
   request >> sha >> ip >> port;
 
+  cout << string_color("Search request : " + sha + " from " + ip + " on " + port) << endl;
   context ctx;
   string temp_peer_endpoint = "tcp://" + ip + ":" + port;
   socket temp_peer(ctx, socket_type::dealer);
@@ -39,13 +40,11 @@ void search_part(message &request) {
 
   message response;
 
-  if (parts[sha].size() > 0) {
-    response << parts[sha].size();
-    for (auto it : parts[sha])
-      response << it.first << it.second;
-  } else {
-    response << "NF";
-  }
+  cout << string_color(to_string(parts[sha].size()), RED) << endl;
+  response << SEARCH;
+  response << parts[sha].size();
+  for (auto it : parts[sha])
+    response << it.first << it.second;
 
   temp_peer.send(response);
 }
@@ -54,11 +53,11 @@ void dispatch_peer(message &request) {
   string id, command;
   request >> id >> command;
 
-  if (command == "add") {
+  if (command == ADD) {
     add_rem_peer(request);
-  } else if (command == "rem") { //Losing my religion
+  } else if (command == REM) { //Losing my religion
     add_rem_peer (request, false);
-  } else if (command == "search"){
+  } else if (command == SEARCH){
     search_part (request);
   }
 }
