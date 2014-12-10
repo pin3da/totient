@@ -19,7 +19,7 @@ if [ "$#" -gt 2 ]; then
   PORT=$3
 fi
 
-TARGET=$(echo $1 | awk -F "/" '{print $2}').totient
+TARGET=totient/$(echo $1 | awk -F "/" '{print $2}').totient
 echo $TRACKER:$PORT > $TARGET
 echo $1 >> $TARGET
 echo $CHUNK_SIZE >> $TARGET

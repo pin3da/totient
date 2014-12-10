@@ -42,8 +42,8 @@ void wake_up(socket &tracker) {
   o_file.close();
 }
 
-bool  share_file(socket &tracker, string &filename) {
-  filename = "./files/" + filename;
+bool  share_file(socket &tracker, string &_filename) {
+  const string filename = "files/" + _filename;
   if (!file_exists(filename))
     return false;
 
@@ -52,7 +52,10 @@ bool  share_file(socket &tracker, string &filename) {
   system(command.c_str());
 
 
-  totient::entry totient_file(filename + ".totient");
+  if (!file_exists("./totient/" + _filename + ".totient"))
+    return false;
+
+  totient::entry totient_file("./totient/" + _filename + ".totient");
 
   message request;
 

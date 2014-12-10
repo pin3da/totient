@@ -70,8 +70,11 @@ namespace totient {
 
       entry (const std::string &filename) {
         std::ifstream totient_file(filename);
+        std::cout << filename << std::endl;
         totient_file >> tracker_url >> name >> piece_length >> length;
         size_t num_parts = (length + piece_length - 1 ) / piece_length;
+        std::cout << string_color("debug ", RED) << tracker_url << " " << name <<  " "
+          << piece_length << " " << length << " " << num_parts << std::endl;
         pieces.resize(num_parts);
         missing = fenwick_tree(num_parts);
         current_parts = 0;
