@@ -35,20 +35,22 @@ At the first time you need to know who has the parts that interest you. This is 
 ### Tracker request
 
 Tracker requests MUST have the following parts:
-
-- [0] - info_hash: The 40 byte sha1 hash of the part.
-- [1] - ip: IP (or dns name) which this peer is at
-- [2] - port: The port number this peer is listening on. Common behavior is for a downloader to try  to listen on port 6881 and if that port is taken try 6882, then 6883, etc. and give up after 6889.
+- [0] - "search", reserved word.
+- [1] - info_hash: The 40 byte sha1 hash of the part.
+- [2] - ip: IP (or dns name) which this peer is at
+- [3] - port: The port number this peer is listening on. Common behavior is for a downloader to try  to listen on port 6881 and if that port is taken try 6882, then 6883, etc. and give up after 6889.
 
 ### Tracker response
 
 Tracker responses MUST have the following parts:
-- [0] - peers_length: Number of peers.
+
+- [0] - "search", reserved word.
+- [1] - peers_length: Number of peers.
 
 for i in peers
 
-- [1 + (3 * i)] - ip: IP address or dns name as a string
-- [1 + (3 * i + 1)] - port: Port number
+- [2 + (3 * i)] - ip: IP address or dns name as a string
+- [2 + (3 * i + 1)] - port: Port number
 
 
 ### Peer request
@@ -64,8 +66,9 @@ Peer request MUST have the following parts.
 
 Peer response MUST have the followin parts.
 
-- [0] : state, "OK" if the part was found, "NF" otherwise.
-- [1] : if [0] is "OK" must have an array with the data.
+- [0] : "piece", reserved word.
+- [1] : state, "OK" if the part was found, "NF" otherwise.
+- [2] : if [0] is "OK" must have an array with the data.
 
 
 ## Sockets' definition
