@@ -59,8 +59,17 @@ void dispatch_peer(message &request) {
 }
 
 
-int main(){
-  const string peer_endpoint = "tcp://*:6667";
+int main(int argc, char ** argv) {
+
+  if (argc < 2) {
+    cout << "Usage : " << argv[0] << " port" << endl;
+    exit(1);
+  }
+
+  const string port = argv[1];
+  const string peer_endpoint = "tcp://*:" + port;
+  cout << string_color("Running tracker at port " + port) << endl;
+
   context ctx;
 
   socket peers(ctx, socket_type::router);

@@ -116,7 +116,7 @@ void play_thread(void *_ctx){
   context *ctx = (context*)_ctx;
   socket cli(*(ctx), socket_type::dealer);
   cli.connect("inproc://playlist");
-  int pos = 0;
+  size_t pos = 0;
 
   poller pol;
   pol.add(cli);
@@ -135,6 +135,8 @@ void play_thread(void *_ctx){
         cli.receive(incmsg);
         string command;
         incmsg >> command;
+        if (command == "quit")
+          break;
         if (command == "add") {
           string filename;
           incmsg >> filename;
@@ -173,9 +175,13 @@ void play_thread(void *_ctx){
 int main(int argc, char **argv) {
 
   if (argc < 5) {
-    cout << "Usage: " << argv[0] << "address port tracker_ip tracker_port";
+    cout << "Usage: " << argv[0] << "address port tracker_ip tracker_port" << endl;
     exit(1);
   }
+
+  cout << string_color(string("Running peer at ") + argv[1] + " on port " + argv[2]) << endl;
+  cout << string_color(string("Default tracker at ") + argv[3] + " on port " + argv[4]) << endl;
+
 
   address = argv[1];
   port    = argv[2];
@@ -239,10 +245,16 @@ int main(int argc, char **argv) {
     }
   }
 
-  download_task.detach();
-  playlist_task.detach();
-  download_task.~thread();
-  playlist_task.~thread();
+
+  message request;
+  request << "quit";
+  download_t.send(request);
+  request << "quit";
+  playlist_t.send(request);
+
+  download_task.join();
+  playlist_task.join();
+
   cout << "Bye bye" << endl;
 
   return 0;
