@@ -16,11 +16,13 @@ void add_rem_peer(message &request, bool add = true) {
   cout << "parts : " << sha_number << endl;
   while (sha_number-- > 0) {
     request >> sha;
-    if (add)
+    if (add) {
+      cout << string_color("Added part " + sha) << endl;
       parts[sha].insert({ip, port});
-    else
+    } else {
+      cout << string_color("Deleted part " + sha) << endl;
       parts[sha].erase({ip, port});
-    cout << string_color("Added part " + sha) << endl;
+    }
   }
 
 }

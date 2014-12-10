@@ -17,7 +17,7 @@ using namespace zmqpp;
 string address, port, tracker_ip, tracker_port;
 
 
-void wake_up(socket &tracker) {
+void add_remove_pieces(socket &tracker, bool is_add) {
   set<string> pieces;
   ifstream i_file(PIECES_PATH);
   string line;
@@ -30,7 +30,7 @@ void wake_up(socket &tracker) {
   ofstream o_file(PIECES_PATH);
 
   message request;
-  request << ADD << address << port << pieces.size();
+  request << ((is_add) ? ADD : REM )<< address << port << pieces.size();
   for (string piece : pieces) {
     o_file << piece << endl;
     request << piece;
@@ -50,7 +50,6 @@ bool  share_file(socket &tracker, string &_filename) {
   string command = "./totient_generator.sh " + filename + " " + tracker_ip + " " + tracker_port;
   cerr << string_color(command, BLUE) << endl;
   system(command.c_str());
-
 
   if (!file_exists("./totient/" + _filename + ".totient"))
     return false;
@@ -106,7 +105,7 @@ void download_thread(void * _ctx) {
       break;
 
     else {
-      cout << string_color("@@@ Received request in download thread", GREEN) << endl;
+      cerr << string_color("@@@ Received request in download thread", GREEN) << endl;
     }
   }
 }
@@ -182,8 +181,9 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  cout << string_color(string("Running peer at ") + argv[1] + " on port " + argv[2]) << endl;
-  cout << string_color(string("Default tracker at ") + argv[3] + " on port " + argv[4]) << endl;
+  string notification;
+  notification += string_color(string("Running peer at ") + argv[1] + " on port " + argv[2] + "\n");
+  notification += string_color(string("Default tracker at ") + argv[3] + " on port " + argv[4] + "\n");
 
 
   address = argv[1];
@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
   socket tracker(ctx, socket_type::dealer);
   tracker.connect(tracker_endpoint);
 
-  wake_up(tracker);
+  add_remove_pieces(tracker, true);
 
 
   // Peer state
@@ -211,10 +211,16 @@ int main(int argc, char **argv) {
   thread download_task(download_thread, (void *) &ctx);
   thread playlist_task(play_thread, (void *) &ctx);
 
+
   while (true) {
     string command;
 
-    cout << "Totient P2P file sharing." << endl;
+    system("clear");
+    cout << notification;
+    notification = "";
+    cout << "    Totient P2P file sharing." << endl;
+    cout << string("options : \"share\", \"download\", \"play\", \"stop\", \"del\", \"pause\", \"quit\",") +
+      " \"list_downloads\""<< endl;
     cin >> command;
 
     if ((command == "q") or (command == "quit"))
@@ -225,26 +231,33 @@ int main(int argc, char **argv) {
       cout << "Enter the name of the file that you want to share (must be in the files dir)" << endl;
       cin >> filename;
       if (share_file(tracker, filename))
-        cout << string_color("The file was successfully shared", GREEN) << endl;
+        notification += string_color("The file was successfully shared\n", GREEN);
       else
-        cout << string_color("The file does not exist", RED) << endl;
+        notification += string_color("The file does not exist\n", RED);
     } else if (command == "download") {
       cout << "Enter the name of the file that you want to download (must be in the totient dir)" << endl;
       cin >> filename;
       if (download_file(tracker, downloads, filename, download_t))
-        cout << string_color("Download in process", GREEN) << endl;
+        notification += string_color("Download in process\n", GREEN);
       else
-        cout << string_color("The file does not exist", RED) << endl;
+        notification += string_color("The file does not exist\n", RED);
     } else if (command == "add") {
       cout << "Enter the name of the file that you want to hear (must be in the files dir)" << endl;
       cin >> filename;
       message p_command;
       p_command << command << filename;
       playlist_t.send(p_command);
-    } else if (command == "next" or "prev" or "stop" or "play" or "del" or "pause"){
+    } else if (command == "next" or command == "prev" or command == "stop" or command == "play" or command == "del"
+        or command == "pause") {
       message p_command;
       p_command << command;
       playlist_t.send(p_command);
+    } else if (command == "list_downloads") {
+      int i = 0;
+      for (const auto &name : downloads)
+        notification += string_color("[" + to_string(i++) + "] - " + name.first + '\n', BLUE);
+    } else {
+      notification += string_color("Command not found\n", RED);
     }
   }
 
@@ -254,6 +267,7 @@ int main(int argc, char **argv) {
   download_t.send(request);
   request << "quit";
   playlist_t.send(request);
+  add_remove_pieces(tracker, false);
 
   download_task.join();
   playlist_task.join();

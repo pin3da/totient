@@ -3,8 +3,10 @@
 #include <random>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 #define ADD "add"
+#define REM "rem"
 
 enum COLOR { RED, GREEN, BLUE, GRAY};
 
@@ -59,7 +61,7 @@ class fenwick_tree {
 namespace totient {
   class entry {
     private:
-      fenwick_tree missing;
+      std::vector<int> missing;
       int current_parts;
     public:
       std::string tracker_url, name;
@@ -70,17 +72,14 @@ namespace totient {
 
       entry (const std::string &filename) {
         std::ifstream totient_file(filename);
-        std::cout << filename << std::endl;
         totient_file >> tracker_url >> name >> piece_length >> length;
         size_t num_parts = (length + piece_length - 1 ) / piece_length;
-        std::cout << string_color("debug ", RED) << tracker_url << " " << name <<  " "
-          << piece_length << " " << length << " " << num_parts << std::endl;
         pieces.resize(num_parts);
-        missing = fenwick_tree(num_parts);
+        missing.resize(num_parts);
         current_parts = 0;
         for (size_t i = 0; i < pieces.size(); ++i) {
           totient_file >> pieces[i];
-          missing.add(i, 1);
+          missing[i] = i;
         }
       }
 
@@ -88,8 +87,8 @@ namespace totient {
         std::random_device generator;
         std::uniform_int_distribution<int> distribution(0, pieces.size() - current_parts - 1);
         int index = distribution(generator);
-        int index2 = missing.query(index);
-        missing.add(index, 1);
+        int index2 = missing[index];
+        std::swap(missing[index], missing[pieces.size() - current_parts - 1]);
         current_parts++;
         return pieces[index2];
       }
