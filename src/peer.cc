@@ -112,68 +112,62 @@ void play_thread(void *_ctx){
   sf::Music music;
   vector<string> playlist;
   bool playflag = true;
-  
+
   context *ctx = (context*)_ctx;
-  socket main(*(ctx), socket_type::dealer);
-  main.connect("inproc://playlist");
+  socket cli(*(ctx), socket_type::dealer);
+  cli.connect("inproc://playlist");
   int pos = 0;
-  
+
   poller pol;
-  pol.add(main);
-  //it = playlist.begin();
-  while(true){
-    //cout << "here" << endl;
-    //cout << pos << endl;
-    if (playlist.size() > 0 and pos < playlist.size()){
+  pol.add(cli);
+  while (true) {
+    if (playlist.size() > 0 and pos < playlist.size()) {
       string name = playlist[pos];
-      //cout << pos << endl;
-      //cout << name << endl << pos << endl << playlist.size() << endl;
       if (music.getStatus() == 0 and music.openFromFile("files/" + name) and playflag){
         music.play();
         pos++;
       }
     }
-  
-    if(pol.poll(100)){
-      if(pol.has_input(main)){
+
+    if (pol.poll(100)) {
+      if (pol.has_input(cli)) {
         message incmsg;
-        main.receive(incmsg);
+        cli.receive(incmsg);
         string command;
         incmsg >> command;
-        if (command == "add"){
+        if (command == "add") {
           string filename;
           incmsg >> filename;
           playlist.push_back(filename);
-        } else if (command == "next"){
+        } else if (command == "next") {
           music.stop();
-        } else if (command == "prev"){
+        } else if (command == "prev") {
           pos = pos - 2;
           if (pos < 0)
             pos = 0;
           music.stop();
-          //cout << pos << endl;
-        } else if (command == "stop" and playflag){
+        } else if (command == "stop" and playflag) {
           playflag = false;
           pos--;
           if (pos < 0)
             pos = 0;
-          music.stop();         
-        } else if(command == "play" and not playflag){
+          music.stop();
+        } else if(command == "play" and not playflag) {
           playflag = "true";
-        } else if(command == "del" and playlist.size() > 0){
+        } else if(command == "del" and playlist.size() > 0) {
           pos--;
           if (pos < 0)
             pos = 0;
           playlist.erase(playlist.begin() + pos);
           music.stop();
-        } else if(command == "pause" and playflag){
+        } else if(command == "pause" and playflag) {
           music.pause();
-        } else if(command == "play" and playflag and playlist.size() > 0){
+        } else if(command == "play" and playflag and playlist.size() > 0) {
           music.play();
         }
       }
     }
-  } 
+  }
 }
 
 int main(int argc, char **argv) {
