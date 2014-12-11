@@ -118,6 +118,7 @@ void download_thread(void * _ctx) {
   listener.bind("tcp://*:" + port);
 
   unordered_map<string, totient::entry> downloads;
+  unordered_map<string, string> inv_hash;
 
   poller pol;
   pol.add(cli);
@@ -143,6 +144,7 @@ void download_thread(void * _ctx) {
       }
 
       if (hash.size()) {
+        inv_hash[hash] = downloads.begin()->first;
         cout << "--- missing : " << hash << endl;
         message request;
         request << SEARCH << hash << address << port;
@@ -203,6 +205,9 @@ void download_thread(void * _ctx) {
           if (status == "OK") {
             if (!file_exists("./pieces" + hash)) {
               cout << "Saving " + hash << endl;
+              downloads[inv_hash[hash]].add_piece(hash);
+              // downloads.begin()->second.add_piece(hash);
+              inv_hash.erase(hash);
               ofstream piece("./pieces/" + hash);
               string data;
               request >> data;

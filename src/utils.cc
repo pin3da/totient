@@ -1,3 +1,4 @@
+#include <set>
 #include <string>
 #include <vector>
 #include <random>
@@ -64,15 +65,17 @@ namespace totient {
     public:
       std::string tracker_url, name;
       int piece_length, length;
+      size_t total;
       std::vector<std::string> pieces;
+      std::set<std::string> downloaded;
 
       entry() {}
 
       entry (const std::string &filename) {
         std::ifstream totient_file(filename);
         totient_file >> tracker_url >> name >> piece_length >> length;
-        size_t num_parts = (length + piece_length - 1 ) / piece_length;
-        pieces.resize(num_parts);
+        total = (length + piece_length - 1 ) / piece_length;
+        pieces.resize(total);
         for (size_t i = 0; i < pieces.size(); ++i)
           totient_file >> pieces[i];
       }
@@ -84,18 +87,24 @@ namespace totient {
         // int index = distribution(generator);
         // std::cout << "--- looking for : " << "./pieces/" + pieces[index] << std::endl;
         // return "";
-        while (pieces.size() > 0 and file_exists("./pieces/" + pieces.back())) {
+        // while (pieces.size() > 0 and file_exists("./pieces/" + pieces.back())) {
           // distribution = std::uniform_int_distribution<int>(0, pieces.size() - 1);
           // swap(pieces[index], pieces[pieces.size() - 1]);
-          pieces.pop_back();
+          // pieces.pop_back();
           // index = distribution(generator);
-        }
+        // }
         if (pieces.size() == 0) return "";
-        return pieces.back();
+        std::string ans = pieces.back();
+        pieces.pop_back();
+        return ans;
+      }
+
+      void add_piece(std::string hash) {
+        downloaded.insert(hash);
       }
 
       bool finish() {
-        return pieces.size() == 0;
+        return downloaded.size() == total;
       }
   };
 
