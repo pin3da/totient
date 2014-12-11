@@ -128,14 +128,10 @@ void download_thread(void * _ctx) {
   while (true) {
 
     if (credit and downloads.size() > 0) {
-      cout << " --- 2" << endl;
       totient::entry &cur_entry = downloads.begin()->second;
-      cout << " --- 3" << endl;
       string hash;
       do {
-        cout << " --- 4" << endl;
         if (cur_entry.finish()) {
-          cout << " --- 5" << endl;
           // message request;
           // request << "pop" << downloads.begin()->first;
           // TODO: send pop request to CLI
@@ -145,13 +141,14 @@ void download_thread(void * _ctx) {
           break;
         }
         hash = cur_entry.next();
-        cout << "-- next part " << hash << endl;
       } while (file_exists("./pieces/" + hash));
 
-      message request;
-      request << SEARCH << hash << address << port;
-      tracker.send(request);
-      credit--;
+      if (hash.size()) {
+        message request;
+        request << SEARCH << hash << address << port;
+        tracker.send(request);
+        credit--;
+      }
     }
 
     if (pol.poll(100)) {
