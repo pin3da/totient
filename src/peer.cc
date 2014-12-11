@@ -93,6 +93,8 @@ void download_thread(void * _ctx) {
   socket cli(*(ctx), socket_type::dealer);
   socket tracker(*(ctx), socket_type::dealer);
   socket listener(*(ctx), socket_type::dealer);
+  socket speaker(*(ctx), socket_type::dealer);
+
   cli.connect("inproc://download");
   tracker.connect("tcp://" + tracker_ip + ":" + tracker_port);
   listener.bind("tcp://*:" + port);
@@ -146,15 +148,27 @@ void download_thread(void * _ctx) {
         string command;
         request >> command;
         if (command == SEARCH) {
+          string hash_response;
           size_t peers_length;
-          request >> peers_length;
-          cerr << "Search response - peers_length: " << peers_length << endl;
+          request >> hash_response >> peers_length;
+          // cout << endl << hash_response << "  " << peers_length << endl;
+          cerr << "Search response - peers_length: " << hash_response << endl;
           vector<pair<string, string>> peers(peers_length);
           for (size_t i = 0; i < peers_length; ++i) {
             request >> peers[i].first;
             request >> peers[i].second;
             cerr << " - Peer : " << peers[i].first << " " << peers[i].second << endl;
           }
+
+          std::random_device generator;
+          std::uniform_int_distribution<int> distribution(0, peers.size() - 1);
+          int index = distribution(generator);
+          const string speaker_endpoint = "tcp://" + peers[index].first + ":" + peers[index].second;
+          speaker.connect(speaker_endpoint);
+          message req;
+          req << "piece" << hash_response << address << port;
+          speaker.send(req);
+          speaker.disconnect(speaker_endpoint);
         }
       }
     }

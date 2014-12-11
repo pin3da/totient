@@ -40,8 +40,7 @@ void search_part(context &ctx, message &request) {
   message response;
 
   cout << string_color("Num of peers : " + to_string(parts[sha].size())) << endl;
-  response << SEARCH;
-  response << parts[sha].size();
+  response << SEARCH << sha << parts[sha].size();
   for (auto it : parts[sha])
     response << it.first << it.second;
 
