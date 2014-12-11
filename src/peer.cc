@@ -133,8 +133,9 @@ void download_thread(void * _ctx) {
       string hash;
 
       if (cur_entry.finish()) {
-        // message request;
-        // request << "pop" << downloads.begin()->first;
+        message request;
+        request << "pop" << downloads.begin()->first;
+        cli.send(request);
         // TODO: send pop request to CLI
         cout << "Already here : " << downloads.begin()->first << endl;
         system(("./totient_assembler.sh " + downloads.begin()->first).c_str());
@@ -289,6 +290,16 @@ void play_thread(void *_ctx){
   }
 }
 
+
+const string options = "options : \n\
+   share: share your files with the totient's cloud, \n\
+   download: Did you see something fast?,\n\
+   (play | stop | del | pause): listen cool music,\n\
+   list_downloads: See the current downloads,\n\
+   search: Search files in the totien's server,\n\
+   list_totient: List your .totient files,\n\
+   (q | quit): exit\n";
+
 int main(int argc, char **argv) {
 
   if (argc < 6) {
@@ -332,15 +343,31 @@ int main(int argc, char **argv) {
   thread playlist_task(play_thread, (void *) &ctx);
 
 
+  poller pol;
+  pol.add(download_t);
+
   while (true) {
+    if (pol.poll(100)) {
+      if (pol.has_input(download_t)) {
+        message request;
+        string command;
+        download_t.receive(request);
+        request >> command;
+        if (command == "pop") {
+          string song_name;
+          request >> song_name;
+          downloads.erase(song_name);
+        }
+      }
+    }
+
     string command;
 
     // system("clear");
     cout << notification;
     notification = "";
     cout << "    Totient P2P file sharing." << endl;
-    cout << string("options : \"share\", \"download\", \"play\", \"stop\", \"del\", \"pause\", \"quit\",") +
-      " \"list_downloads\", \"search\" "<< endl;
+    cout << options << endl;
     cin >> command;
 
     if ((command == "q") or (command == "quit"))
@@ -399,10 +426,14 @@ int main(int argc, char **argv) {
       } else {
         notification += string_color("The file does not exist\n", RED);
       }
-
-    } else {
+    } else if (command == "list_totient") {
+      cout << "Totient files : " << endl;
+      system("ls ./totient");
+      cout << endl;
+    }else {
       notification += string_color("Command not found\n", RED);
     }
+
   }
 
 
