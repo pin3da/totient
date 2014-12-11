@@ -67,7 +67,7 @@ Peer request MUST have the following parts.
 
 Peer response MUST have the followin parts.
 
-- [0] : "piece", reserved word.
+- [0] : "file", reserved word.
 - [1] : state, "OK" if the part was found, "NF" otherwise.
 - [2] : if [0] is "OK" must have an array with the data.
 
