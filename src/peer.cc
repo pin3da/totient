@@ -15,7 +15,7 @@ using namespace zmqpp;
 #define PIECES_PATH  "./pieces/list"
 
 
-string address, port, tracker_ip, tracker_port;
+string address, port, tracker_ip, tracker_port, totient_endpoint;
 
 
 void add_remove_pieces(socket &tracker, bool is_add) {
@@ -43,7 +43,7 @@ void add_remove_pieces(socket &tracker, bool is_add) {
   o_file.close();
 }
 
-bool  share_file(socket &tracker, string &_filename) {
+bool  share_file(socket &tracker, string &_filename, context &ctx) {
   const string filename = "files/" + _filename;
   if (!file_exists(filename))
     return false;
@@ -65,8 +65,26 @@ bool  share_file(socket &tracker, string &_filename) {
     request << totient_file.pieces[i];
 
   tracker.send(request);
-
-  return true;
+  
+  ifstream totient("./totient/" + _filename + ".totient");
+  stringstream buffer;
+  buffer << totient.rdbuf();
+  message outmsg;
+  outmsg << "new" << _filename << buffer.str();
+  
+  socket t_server(ctx, socket_type::req);
+  t_server.connect("tcp://" + totient_endpoint);
+  t_server.send(outmsg);
+  string answer;
+  message incmsg;
+  t_server.receive(incmsg);
+  incmsg >> answer;
+  t_server.disconnect("tcp://" + totient_endpoint);
+  totient.close();
+  if(answer == "OK")
+    return true;
+  else
+    return false;
 }
 
 bool download_file(socket &tracker, unordered_map<string, totient::entry> &downloads, const string &_filename,
@@ -316,7 +334,7 @@ int main(int argc, char **argv) {
   port    = argv[2];
   tracker_ip = argv[3];
   tracker_port = argv[4];
-  const string totient_endpoint = argv[5];
+  totient_endpoint = argv[5];
   const string tracker_endpoint = string("tcp://") + tracker_ip + ":" + tracker_port;
 
   context ctx;
@@ -377,7 +395,7 @@ int main(int argc, char **argv) {
     if (command == "share") {
       cout << "Enter the name of the file that you want to share (must be in the files dir)" << endl;
       cin >> filename;
-      if (share_file(tracker, filename))
+      if (share_file(tracker, filename, ctx))
         notification += string_color("The file was successfully shared\n", GREEN);
       else
         notification += string_color("The file does not exist\n", RED);
