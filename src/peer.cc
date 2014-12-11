@@ -117,6 +117,7 @@ void download_thread(void * _ctx) {
           message request;
           request << "pop" << downloads.begin()->first;
           downloads.erase(downloads.begin());
+          break;
         }
         hash = cur_entry.next();
       } while (file_exists("./pieces/" + hash));
@@ -241,8 +242,8 @@ void play_thread(void *_ctx){
 
 int main(int argc, char **argv) {
 
-  if (argc < 5) {
-    cout << "Usage: " << argv[0] << " address port tracker_ip tracker_port" << endl;
+  if (argc < 6) {
+    cout << "Usage: " << argv[0] << " address port tracker_ip tracker_port totient_endpoint" << endl;
     exit(1);
   }
 
@@ -255,11 +256,16 @@ int main(int argc, char **argv) {
   port    = argv[2];
   tracker_ip = argv[3];
   tracker_port = argv[4];
+  const string totient_endpoint = argv[5];
   const string tracker_endpoint = string("tcp://") + tracker_ip + ":" + tracker_port;
 
   context ctx;
   socket tracker(ctx, socket_type::dealer);
   tracker.connect(tracker_endpoint);
+
+  socket t_server(ctx, socket_type::request);
+  t_server.connect(totient_endpoint);
+
 
   add_remove_pieces(tracker, true);
 
@@ -285,7 +291,7 @@ int main(int argc, char **argv) {
     notification = "";
     cout << "    Totient P2P file sharing." << endl;
     cout << string("options : \"share\", \"download\", \"play\", \"stop\", \"del\", \"pause\", \"quit\",") +
-      " \"list_downloads\""<< endl;
+      " \"list_downloads\", \"search\" "<< endl;
     cin >> command;
 
     if ((command == "q") or (command == "quit"))
@@ -321,6 +327,25 @@ int main(int argc, char **argv) {
       int i = 0;
       for (const auto &name : downloads)
         notification += string_color("[" + to_string(i++) + "] - " + name.first + '\n', BLUE);
+    } else if (command == "search") {
+      cout << "Enter the name of the file that you want to search in the totients' server." << endl;
+      cin >> filename;
+      message request, response;
+      request << filename;
+      t_server.send(filename);
+      t_server.receive(response);
+      string ans, file;
+      response >> ans;
+      if (ans == "OK") {
+        response >> file;
+        ofstream totient_file("./totient/" + filename);
+        totient_file.write(file.c_str(), file.size());
+        totient_file.close();
+        notification += string_color("The file was successfully downloaded\n", GREEN);
+      } else {
+        notification += string_color("The file does not exist\n", RED);
+      }
+
     } else {
       notification += string_color("Command not found\n", RED);
     }
