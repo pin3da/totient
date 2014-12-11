@@ -264,7 +264,7 @@ int main(int argc, char **argv) {
   tracker.connect(tracker_endpoint);
 
   socket t_server(ctx, socket_type::request);
-  t_server.connect(totient_endpoint);
+  t_server.connect("tcp://" + totient_endpoint);
 
 
   add_remove_pieces(tracker, true);

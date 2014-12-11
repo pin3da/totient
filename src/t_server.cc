@@ -17,8 +17,8 @@ int main(int argc, char **argv) {
   cout << string_color("Server running on port: " + port + "\n");
 
   context ctx;
-  socket frontend(ctx, socket_type::rep);
-  frontend.connect("tcp://localhost:" + port);
+  socket frontend(ctx, socket_type::reply);
+  frontend.bind("tcp://*:" + port);
 
   poller pol;
   pol.add(frontend);
@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
         request >> filename;
         filename = "./totient/" + filename;
         message response;
+        cout << "Received request : " << filename << endl;
         if (file_exists(filename)) {
           ifstream file;
           response << "OK";
