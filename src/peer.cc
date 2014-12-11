@@ -315,9 +315,14 @@ int main(int argc, char **argv) {
     } else if (command == "add") {
       cout << "Enter the name of the file that you want to hear (must be in the files dir)" << endl;
       cin >> filename;
-      message p_command;
-      p_command << command << filename;
-      playlist_t.send(p_command);
+      if (file_exists("./files/" + filename)) {
+        message p_command;
+        p_command << command << filename;
+        playlist_t.send(p_command);
+        notification += string_color("The file was successfully added to the playlist\n", GREEN);
+      } else {
+        notification += string_color("The file does not exist\n", RED);
+      }
     } else if (command == "next" or command == "prev" or command == "stop" or command == "play" or command == "del"
         or command == "pause") {
       message p_command;
