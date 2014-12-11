@@ -27,29 +27,30 @@ void add_rem_peer(message &request, bool add = true) {
 
 }
 
-void search_part(message &request) {
+void search_part(context &ctx, message &request) {
   string sha, ip, port;
 
   request >> sha >> ip >> port;
 
   cout << string_color("Search request : " + sha + " from " + ip + " on " + port) << endl;
-  context ctx;
   string temp_peer_endpoint = "tcp://" + ip + ":" + port;
   socket temp_peer(ctx, socket_type::dealer);
   temp_peer.connect(temp_peer_endpoint);
 
   message response;
 
-  cout << string_color(to_string(parts[sha].size()), RED) << endl;
+  cout << string_color("Num of peers : " + to_string(parts[sha].size())) << endl;
   response << SEARCH;
   response << parts[sha].size();
   for (auto it : parts[sha])
     response << it.first << it.second;
 
   temp_peer.send(response);
+  cout << string_color("Sent message to " + temp_peer_endpoint) << endl;
+  temp_peer.disconnect(temp_peer_endpoint);
 }
 
-void dispatch_peer(message &request) {
+void dispatch_peer(context &ctx, message &request) {
   string id, command;
   request >> id >> command;
 
@@ -58,7 +59,7 @@ void dispatch_peer(message &request) {
   } else if (command == REM) { //Losing my religion
     add_rem_peer (request, false);
   } else if (command == SEARCH){
-    search_part (request);
+    search_part (ctx, request);
   }
 }
 
@@ -88,7 +89,7 @@ int main(int argc, char ** argv) {
     if (pol.poll()){
       if (pol.has_input(peers)){
         peers.receive(request);
-        dispatch_peer(request);
+        dispatch_peer(ctx, request);
       }
     }
   }
