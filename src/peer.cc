@@ -84,7 +84,7 @@ bool download_file(socket &tracker, unordered_map<string, totient::entry> &downl
   return true;
 }
 
-void play_song(const string &filename) {
+void send_file(socket &dest, const string &filename) {
 
 }
 
@@ -92,17 +92,17 @@ void download_thread(void * _ctx) {
   context *ctx= (context *)_ctx;
   socket cli(*(ctx), socket_type::dealer);
   socket tracker(*(ctx), socket_type::dealer);
-  socket listen_tracker(*(ctx), socket_type::dealer);
+  socket listener(*(ctx), socket_type::dealer);
   cli.connect("inproc://download");
   tracker.connect("tcp://" + tracker_ip + ":" + tracker_port);
-  listen_tracker.bind("tcp://*:" + port);
+  listener.bind("tcp://*:" + port);
 
   unordered_map<string, totient::entry> downloads;
 
   poller pol;
   pol.add(cli);
   pol.add(tracker);
-  pol.add(listen_tracker);
+  pol.add(listener);
 
   int credit = 5;
   while (true) {
@@ -123,7 +123,6 @@ void download_thread(void * _ctx) {
       request << SEARCH << hash << address << port;
       tracker.send(request);
       credit--;
-      // cout << "SENT : " << SEARCH << " " << hash << "  " << address << " " << port << endl;
     }
 
     if (pol.poll(100)) {
@@ -134,7 +133,6 @@ void download_thread(void * _ctx) {
         request >> command;
         if (command == "quit")
           break;
-        //  cerr << string_color("@@@ Received request in download thread", GREEN) << endl;
 
         else if (command == "push") {
           string filename;
@@ -142,9 +140,9 @@ void download_thread(void * _ctx) {
           downloads[filename] = totient::entry(filename);
         }
       }
-      if (pol.has_input(listen_tracker)) {
+      if (pol.has_input(listener)) {
         message request;
-        listen_tracker.receive(request);
+        listener.receive(request);
         string command;
         request >> command;
         if (command == SEARCH) {
