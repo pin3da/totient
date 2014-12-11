@@ -59,7 +59,7 @@ for i in peers
 Peer request MUST have the following parts.
 
 - [0] : "piece", word to identify the request kind.
-- [1] : SHA1, SHA1 of piece.
+- [1] - SAH1, message digest
 - [2] : ip
 - [3] : port
 
@@ -68,8 +68,9 @@ Peer request MUST have the following parts.
 Peer response MUST have the followin parts.
 
 - [0] : "file", reserved word.
-- [1] : state, "OK" if the part was found, "NF" otherwise.
-- [2] : if [0] is "OK" must have an array with the data.
+- [1] - SAH1, message digest
+- [2] : state, "OK" if the part was found, "NF" otherwise.
+- [3] : if [0] is "OK" must have an array with the data.
 
 
 ## Sockets' definition
