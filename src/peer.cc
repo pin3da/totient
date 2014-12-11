@@ -72,7 +72,7 @@ bool  share_file(socket &tracker, string &_filename, context &ctx) {
   message outmsg;
   outmsg << "new" << _filename << buffer.str();
   
-  socket t_server(ctx, socket_type::req);
+  socket t_server(ctx, socket_type::dealer);
   t_server.connect("tcp://" + totient_endpoint);
   t_server.send(outmsg);
   string answer;
@@ -341,7 +341,7 @@ int main(int argc, char **argv) {
   socket tracker(ctx, socket_type::dealer);
   tracker.connect(tracker_endpoint);
 
-  socket t_server(ctx, socket_type::request);
+  socket t_server(ctx, socket_type::dealer);
   t_server.connect("tcp://" + totient_endpoint);
 
 

@@ -1,5 +1,6 @@
 #include <set>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <zmqpp/zmqpp.hpp>
 #include "utils.cc"
@@ -17,7 +18,7 @@ int main(int argc, char **argv) {
   cout << string_color("Server running on port: " + port + "\n");
 
   context ctx;
-  socket frontend(ctx, socket_type::reply);
+  socket frontend(ctx, socket_type::router);
   frontend.bind("tcp://*:" + port);
 
   poller pol;
@@ -28,8 +29,10 @@ int main(int argc, char **argv) {
       if (pol.has_input(frontend)) {
         message request;
         frontend.receive(request);
-        string filename;
+        string id, filename;
+        request >> id;
         request >> filename;
+        cout << id << endl << filename << endl;
         if (filename == "new"){
           string data;
           request >> filename >> data;
@@ -37,25 +40,23 @@ int main(int argc, char **argv) {
           totient << data;
           totient.close();
           message outmsg;
-          outmsg << "OK";
+          outmsg << id << "OK";
           frontend.send(outmsg);
         } else{
           filename = "./totient/" + filename;
           message response;
+          cout << "before" << endl;
+          response << id;
+          cout << "after" << endl;
           cout << "Received request : " << filename << endl;
           if (file_exists(filename)) {
             ifstream file;
             response << "OK";
             file.open(filename);
-            file.seekg (0, file.end);
-            int length = file.tellg();
-            file.seekg (0, file.beg);
-            char *data = new char[length];
-            file.read(data, length);
-            string chunk(data, file.gcount());
-            response << chunk;
+            stringstream buffer;
+            buffer << file.rdbuf();
+            response << buffer.str();
             file.close();
-            delete[] data;
           } else {
             response << "NF";
           }
