@@ -28,7 +28,7 @@ std::string string_color(const std::string &s, COLOR color = GRAY) {
 }
 
 bool file_exists(const std::string &filename) {
-  std::cout << "Looking for " << filename << std::endl;
+  // std::cout << "Looking for " << filename << std::endl;
   std::ifstream ifile(filename, std::ifstream::binary);
   bool good = !ifile.fail();
   ifile.close();

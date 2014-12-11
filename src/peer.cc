@@ -145,7 +145,7 @@ void download_thread(void * _ctx) {
 
       if (hash.size()) {
         inv_hash[hash] = downloads.begin()->first;
-        cout << "--- missing : " << hash << endl;
+        cout << "--- downloading : " << hash << endl;
         message request;
         request << SEARCH << hash << address << port;
         tracker.send(request);
@@ -179,12 +179,12 @@ void download_thread(void * _ctx) {
           size_t peers_length;
           request >> hash_response >> peers_length;
           // cout << endl << hash_response << "  " << peers_length << endl;
-          cerr << "Search response - peers_length: " << hash_response << endl;
+          // cerr << "Search response - peers_length: " << hash_response << endl;
           vector<pair<string, string>> peers(peers_length);
           for (size_t i = 0; i < peers_length; ++i) {
             request >> peers[i].first;
             request >> peers[i].second;
-            cerr << " - Peer : " << peers[i].first << " " << peers[i].second << endl;
+            // cerr << " - Peer : " << peers[i].first << " " << peers[i].second << endl;
           }
 
           std::random_device generator;
@@ -204,7 +204,7 @@ void download_thread(void * _ctx) {
           request >> status;
           if (status == "OK") {
             if (!file_exists("./pieces" + hash)) {
-              cout << "Saving " + hash << endl;
+              // cout << "Saving " + hash << endl;
               downloads[inv_hash[hash]].add_piece(hash);
               // downloads.begin()->second.add_piece(hash);
               inv_hash.erase(hash);
