@@ -45,12 +45,13 @@ Tracker requests MUST have the following parts:
 Tracker responses MUST have the following parts:
 
 - [0] - "search", reserved word.
-- [1] - peers_length: Number of peers.
+- [1] - SAH1, message digest
+- [2] - peers_length: Number of peers.
 
 for i in peers
 
-- [2 + (3 * i)] - ip: IP address or dns name as a string
-- [2 + (3 * i + 1)] - port: Port number
+- [3 + (3 * i)] - ip: IP address or dns name as a string
+- [3 + (3 * i + 1)] - port: Port number
 
 
 ### Peer request
@@ -58,17 +59,18 @@ for i in peers
 Peer request MUST have the following parts.
 
 - [0] : "piece", word to identify the request kind.
-- [1] : SHA1, SHA1 of piece.
-- [2] : offset
-- [3] : chunk_size
+- [1] - SAH1, message digest
+- [2] : ip
+- [3] : port
 
 ### Peer response
 
 Peer response MUST have the followin parts.
 
-- [0] : "piece", reserved word.
-- [1] : state, "OK" if the part was found, "NF" otherwise.
-- [2] : if [0] is "OK" must have an array with the data.
+- [0] : "file", reserved word.
+- [1] - SAH1, message digest
+- [2] : state, "OK" if the part was found, "NF" otherwise.
+- [3] : if [0] is "OK" must have an array with the data.
 
 
 ## Sockets' definition
