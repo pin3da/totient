@@ -81,19 +81,14 @@ namespace totient {
       }
 
       std::string next() {
-        // std::random_device generator;
-        // std::uniform_int_distribution<int> distribution(0, pieces.size() - 1);
 
-        // int index = distribution(generator);
-        // std::cout << "--- looking for : " << "./pieces/" + pieces[index] << std::endl;
-        // return "";
-        // while (pieces.size() > 0 and file_exists("./pieces/" + pieces.back())) {
-          // distribution = std::uniform_int_distribution<int>(0, pieces.size() - 1);
-          // swap(pieces[index], pieces[pieces.size() - 1]);
-          // pieces.pop_back();
-          // index = distribution(generator);
-        // }
-        if (pieces.size() == 0) return "";
+        if (pieces.size() == 0)
+          return "";
+
+        std::random_device generator;
+        std::uniform_int_distribution<int> distribution(0, pieces.size() - 1);
+        int index = distribution(generator);
+        std::swap(pieces[index], pieces[pieces.size() - 1]);
         std::string ans = pieces.back();
         pieces.pop_back();
         return ans;
