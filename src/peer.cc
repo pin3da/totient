@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdio>
 #include <thread>
+#include <sstream>
 #include <set>
 #include <SFML/Audio.hpp>
 #include "utils.cc"
@@ -84,8 +85,25 @@ bool download_file(socket &tracker, unordered_map<string, totient::entry> &downl
   return true;
 }
 
-void send_file(socket &dest, const string &filename) {
-
+void send_file(message &incmsg, context &ctx){
+  string hash, ip, port;
+  incmsg >> hash >> ip >> port;
+  message outmsg;
+  outmsg << "file" << hash;
+  if(file_exists("pieces/" + hash)){
+    ifstream piece("pieces/" + hash);
+    stringstream buffer;
+    buffer << piece.rdbuf();
+    outmsg << "ok" << buffer.str();
+    piece.close();
+    cout << "sending piece" << endl;
+  } else
+    outmsg << "NF";
+  
+  socket speaker(ctx, socket_type::dealer);
+  speaker.connect("tcp://" + ip + ":" + port);
+  speaker.send(outmsg);
+  speaker.disconnect("tcp://" + ip + ":" + port);
 }
 
 void download_thread(void * _ctx) {
@@ -133,6 +151,7 @@ void download_thread(void * _ctx) {
         cli.receive(request);
         string command;
         request >> command;
+        cout << command << endl;
         if (command == "quit")
           break;
 
@@ -169,6 +188,20 @@ void download_thread(void * _ctx) {
           req << "piece" << hash_response << address << port;
           speaker.send(req);
           speaker.disconnect(speaker_endpoint);
+        } else if(command == "piece"){
+          send_file(request, *(ctx));
+        } else if (command == "file"){
+          cout << "here" << endl;
+          string hash, status;
+          request >> hash;
+          request >> status;
+          if(status == "ok"){
+            ofstream piece("pieces/" + hash);
+            string data;
+            request >> data;
+            piece << data;
+            piece.close();
+          }
         }
       }
     }
