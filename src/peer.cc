@@ -85,22 +85,22 @@ bool download_file(socket &tracker, unordered_map<string, totient::entry> &downl
   return true;
 }
 
-void send_file(message &incmsg, context &ctx){
+void send_file(context *ctx, message &incmsg) {
   string hash, ip, port;
   incmsg >> hash >> ip >> port;
   message outmsg;
   outmsg << "file" << hash;
-  if(file_exists("pieces/" + hash)){
+  if (file_exists("pieces/" + hash)) {
     ifstream piece("pieces/" + hash);
     stringstream buffer;
     buffer << piece.rdbuf();
-    outmsg << "ok" << buffer.str();
+    outmsg << "OK" << buffer.str();
     piece.close();
     cout << "sending piece" << endl;
   } else
     outmsg << "NF";
-  
-  socket speaker(ctx, socket_type::dealer);
+
+  socket speaker(*ctx, socket_type::dealer);
   speaker.connect("tcp://" + ip + ":" + port);
   speaker.send(outmsg);
   speaker.disconnect("tcp://" + ip + ":" + port);
@@ -128,16 +128,24 @@ void download_thread(void * _ctx) {
   while (true) {
 
     if (credit and downloads.size() > 0) {
+      cout << " --- 2" << endl;
       totient::entry &cur_entry = downloads.begin()->second;
+      cout << " --- 3" << endl;
       string hash;
       do {
+        cout << " --- 4" << endl;
         if (cur_entry.finish()) {
-          message request;
-          request << "pop" << downloads.begin()->first;
+          cout << " --- 5" << endl;
+          // message request;
+          // request << "pop" << downloads.begin()->first;
+          // TODO: send pop request to CLI
+          cout << "dw size : " << downloads.size() << endl;
+          cout << "Already here : " << downloads.begin()->first << endl;
           downloads.erase(downloads.begin());
           break;
         }
         hash = cur_entry.next();
+        cout << "-- next part " << hash << endl;
       } while (file_exists("./pieces/" + hash));
 
       message request;
@@ -189,19 +197,22 @@ void download_thread(void * _ctx) {
           req << "piece" << hash_response << address << port;
           speaker.send(req);
           speaker.disconnect(speaker_endpoint);
-        } else if(command == "piece"){
-          send_file(request, *(ctx));
-        } else if (command == "file"){
-          cout << "here" << endl;
+        } else if (command == "piece") {
+          send_file(ctx, request);
+        } else if (command == "file") {
           string hash, status;
           request >> hash;
           request >> status;
-          if(status == "ok"){
+          if (status == "OK") {
             ofstream piece("pieces/" + hash);
             string data;
             request >> data;
             piece << data;
+            system(("echo \"" + hash + "\" >> ./pieces/list").c_str());
             piece.close();
+            credit++;
+          } else {
+            cout << "Not found" << endl;
           }
         }
       }

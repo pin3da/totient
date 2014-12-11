@@ -63,7 +63,6 @@ namespace totient {
   class entry {
     public:
       std::vector<int> missing;
-      int current_parts;
       std::string tracker_url, name;
       int piece_length, length;
       std::vector<std::string> pieces;
@@ -76,7 +75,6 @@ namespace totient {
         size_t num_parts = (length + piece_length - 1 ) / piece_length;
         pieces.resize(num_parts);
         missing.resize(num_parts);
-        current_parts = 0;
         for (size_t i = 0; i < pieces.size(); ++i) {
           totient_file >> pieces[i];
           missing[i] = i;
@@ -85,16 +83,16 @@ namespace totient {
 
       std::string next() {
         std::random_device generator;
-        std::uniform_int_distribution<int> distribution(0, pieces.size() - current_parts - 1);
+        std::uniform_int_distribution<int> distribution(0, missing.size() - 1);
         int index = distribution(generator);
         int index2 = missing[index];
-        std::swap(missing[index], missing[pieces.size() - current_parts - 1]);
-        current_parts++;
+        std::swap(missing[index], missing[missing.size() - 1]);
+        missing.pop_back();
         return pieces[index2];
       }
 
       bool finish() {
-        return size_t(current_parts) >= pieces.size();
+        return missing.size() == 0;
       }
   };
 
