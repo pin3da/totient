@@ -2,6 +2,7 @@ bin/peer
 bin/tracker
 bin/files
 bin/pieces
+bin/t_server
 *.totient
 *~
 *.o
