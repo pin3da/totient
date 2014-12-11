@@ -65,13 +65,13 @@ bool  share_file(socket &tracker, string &_filename, context &ctx) {
     request << totient_file.pieces[i];
 
   tracker.send(request);
-  
+
   ifstream totient("./totient/" + _filename + ".totient");
   stringstream buffer;
   buffer << totient.rdbuf();
   message outmsg;
   outmsg << "new" << _filename << buffer.str();
-  
+
   socket t_server(ctx, socket_type::dealer);
   t_server.connect("tcp://" + totient_endpoint);
   t_server.send(outmsg);
@@ -227,6 +227,9 @@ void download_thread(void * _ctx) {
               downloads[inv_hash[hash]].add_piece(hash);
               // downloads.begin()->second.add_piece(hash);
               inv_hash.erase(hash);
+              message req;
+              req << ADD << address << port << size_t(1) << hash;
+              tracker.send(req);
               ofstream piece("./pieces/" + hash);
               string data;
               request >> data;
@@ -321,7 +324,7 @@ const string options = "options : \n\
 int main(int argc, char **argv) {
 
   if (argc < 6) {
-    cout << "Usage: " << argv[0] << " address port tracker_ip tracker_port totient_endpoint" << endl;
+    cout << "Usage: " << argv[0] << " address port tracker_ip tracker_port totient_endpoin" << endl;
     exit(1);
   }
 

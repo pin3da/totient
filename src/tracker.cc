@@ -56,7 +56,7 @@ void dispatch_peer(context &ctx, message &request) {
   request >> id >> command;
 
   if (command == ADD) {
-    add_rem_peer(request);
+    add_rem_peer(request, true);
   } else if (command == REM) { //Losing my religion
     add_rem_peer (request, false);
   } else if (command == SEARCH){
