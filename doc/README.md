@@ -45,12 +45,13 @@ Tracker requests MUST have the following parts:
 Tracker responses MUST have the following parts:
 
 - [0] - "search", reserved word.
-- [1] - peers_length: Number of peers.
+- [1] - SAH1, message digest
+- [2] - peers_length: Number of peers.
 
 for i in peers
 
-- [2 + (3 * i)] - ip: IP address or dns name as a string
-- [2 + (3 * i + 1)] - port: Port number
+- [3 + (3 * i)] - ip: IP address or dns name as a string
+- [3 + (3 * i + 1)] - port: Port number
 
 
 ### Peer request
@@ -59,8 +60,8 @@ Peer request MUST have the following parts.
 
 - [0] : "piece", word to identify the request kind.
 - [1] : SHA1, SHA1 of piece.
-- [2] : offset
-- [3] : chunk_size
+- [2] : ip
+- [3] : port
 
 ### Peer response
 
