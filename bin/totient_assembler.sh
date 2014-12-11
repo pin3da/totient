@@ -13,8 +13,8 @@ done < tmp
 
 tail -n +5 $1 > tmp
 
-TARGET=$(echo $1 | awk -F "." '{print $1}').$(echo $1 | awk -F "." '{print $2}')
-TARGET=./files/$(echo $TARGET | awk  -F "/" '{print $2}')
+TARGET=$(echo $1 | awk -F "/" '{print $3}')
+TARGET=./files/$(echo $TARGET | awk -F "." '{print $1}').$(echo $TARGET | awk -F "." '{print $2}')
 
 while read hash;do
   cat pieces/$hash >> $TARGET

@@ -130,20 +130,20 @@ void download_thread(void * _ctx) {
     if (credit and downloads.size() > 0) {
       totient::entry &cur_entry = downloads.begin()->second;
       string hash;
-      do {
-        if (cur_entry.finish()) {
-          // message request;
-          // request << "pop" << downloads.begin()->first;
-          // TODO: send pop request to CLI
-          cout << "dw size : " << downloads.size() << endl;
-          cout << "Already here : " << downloads.begin()->first << endl;
-          downloads.erase(downloads.begin());
-          break;
-        }
+
+      if (cur_entry.finish()) {
+        // message request;
+        // request << "pop" << downloads.begin()->first;
+        // TODO: send pop request to CLI
+        cout << "Already here : " << downloads.begin()->first << endl;
+        system(("./totient_assembler.sh " + downloads.begin()->first).c_str());
+        downloads.erase(downloads.begin());
+      } else {
         hash = cur_entry.next();
-      } while (file_exists("./pieces/" + hash));
+      }
 
       if (hash.size()) {
+        cout << "--- missing : " << hash << endl;
         message request;
         request << SEARCH << hash << address << port;
         tracker.send(request);
@@ -201,13 +201,16 @@ void download_thread(void * _ctx) {
           request >> hash;
           request >> status;
           if (status == "OK") {
-            ofstream piece("pieces/" + hash);
-            string data;
-            request >> data;
-            piece << data;
-            system(("echo \"" + hash + "\" >> ./pieces/list").c_str());
-            piece.close();
-            credit++;
+            if (!file_exists("./pieces" + hash)) {
+              cout << "Saving " + hash << endl;
+              ofstream piece("./pieces/" + hash);
+              string data;
+              request >> data;
+              piece << data;
+              piece.close();
+              system(("echo \"" + hash + "\" >> ./pieces/list").c_str());
+              credit++;
+            }
           } else {
             cout << "Not found" << endl;
           }

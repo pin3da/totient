@@ -62,7 +62,6 @@ class fenwick_tree {
 namespace totient {
   class entry {
     public:
-      std::vector<int> missing;
       std::string tracker_url, name;
       int piece_length, length;
       std::vector<std::string> pieces;
@@ -74,25 +73,29 @@ namespace totient {
         totient_file >> tracker_url >> name >> piece_length >> length;
         size_t num_parts = (length + piece_length - 1 ) / piece_length;
         pieces.resize(num_parts);
-        missing.resize(num_parts);
-        for (size_t i = 0; i < pieces.size(); ++i) {
+        for (size_t i = 0; i < pieces.size(); ++i)
           totient_file >> pieces[i];
-          missing[i] = i;
-        }
       }
 
       std::string next() {
-        std::random_device generator;
-        std::uniform_int_distribution<int> distribution(0, missing.size() - 1);
-        int index = distribution(generator);
-        int index2 = missing[index];
-        std::swap(missing[index], missing[missing.size() - 1]);
-        missing.pop_back();
-        return pieces[index2];
+        // std::random_device generator;
+        // std::uniform_int_distribution<int> distribution(0, pieces.size() - 1);
+
+        // int index = distribution(generator);
+        // std::cout << "--- looking for : " << "./pieces/" + pieces[index] << std::endl;
+        // return "";
+        while (pieces.size() > 0 and file_exists("./pieces/" + pieces.back())) {
+          // distribution = std::uniform_int_distribution<int>(0, pieces.size() - 1);
+          // swap(pieces[index], pieces[pieces.size() - 1]);
+          pieces.pop_back();
+          // index = distribution(generator);
+        }
+        if (pieces.size() == 0) return "";
+        return pieces.back();
       }
 
       bool finish() {
-        return missing.size() == 0;
+        return pieces.size() == 0;
       }
   };
 
