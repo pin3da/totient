@@ -18,6 +18,10 @@ non-restricted way, so if you want to connect to the Totient cloud you just need
 
         aptitude install libsfml-dev
 
+- [libuud](http://linux.die.net/man/3/libuuid)
+
+        aptitude install uuid-dev uuid-runtime uuid
+
 
 ## Compile
 
