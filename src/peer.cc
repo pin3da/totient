@@ -6,7 +6,6 @@
 #include <thread>
 #include <sstream>
 #include <set>
-#include <unistd.h>
 #include <SFML/Audio.hpp>
 #include "utils.cc"
 
@@ -104,12 +103,10 @@ bool download_file(socket &tracker, unordered_map<string, totient::entry> &downl
   return true;
 }
 
-void send_file(context *ctx, message &incmsg, int &delay) {
+void send_file(context *ctx, message &incmsg) {
   string hash, ip, port;
   incmsg >> hash >> ip >> port;
   message outmsg;
-
-  sleep(delay);
   outmsg << "file" << hash;
   if (file_exists("pieces/" + hash)) {
     ifstream piece("pieces/" + hash);
@@ -127,8 +124,7 @@ void send_file(context *ctx, message &incmsg, int &delay) {
   speaker.disconnect("tcp://" + ip + ":" + port);
 }
 
-void download_thread(void * _ctx, void *_delay) {
-  int delay = *((int *)_delay);
+void download_thread(void * _ctx) {
   context *ctx= (context *)_ctx;
   socket cli(*(ctx), socket_type::dealer);
   socket tracker(*(ctx), socket_type::dealer);
@@ -220,7 +216,7 @@ void download_thread(void * _ctx, void *_delay) {
           speaker.send(req);
           speaker.disconnect(speaker_endpoint);
         } else if (command == "piece") {
-          send_file(ctx, request, delay);
+          send_file(ctx, request);
         } else if (command == "file") {
           string hash, status;
           request >> hash;
@@ -327,11 +323,10 @@ const string options = "options : \n\
 
 int main(int argc, char **argv) {
 
-  if (argc < 7) {
-    cout << "Usage: " << argv[0] << " address port tracker_ip tracker_port totient_endpoint delay" << endl;
+  if (argc < 6) {
+    cout << "Usage: " << argv[0] << " address port tracker_ip tracker_port totient_endpoin" << endl;
     exit(1);
   }
-
 
   string notification;
   notification += string_color(string("Running peer at ") + argv[1] + " on port " + argv[2] + "\n");
@@ -343,7 +338,6 @@ int main(int argc, char **argv) {
   tracker_ip = argv[3];
   tracker_port = argv[4];
   totient_endpoint = argv[5];
-  int delay = atoi(argv[6]);
   const string tracker_endpoint = string("tcp://") + tracker_ip + ":" + tracker_port;
 
   context ctx;
@@ -366,7 +360,7 @@ int main(int argc, char **argv) {
   socket playlist_t(ctx, socket_type::dealer);
   playlist_t.bind("inproc://playlist");
 
-  thread download_task(download_thread, (void *) &ctx, (void *) &delay);
+  thread download_task(download_thread, (void *) &ctx);
   thread playlist_task(play_thread, (void *) &ctx);
 
 
