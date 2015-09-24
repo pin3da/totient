@@ -14,6 +14,9 @@ non-restricted way, so if you want to connect to the Totient cloud you just need
 - [Install ZeroMQ](http://zeromq.org/intro:get-the-software)
 - [Install ZMQPP](https://github.com/zeromq/zmqpp)
 
+- [libsfml](http://www.sfml-dev.org/) (2.0 or higher)
+
+        aptitude install libsfml-dev
 
 
 ## Compile
