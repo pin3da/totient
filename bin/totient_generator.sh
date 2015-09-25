@@ -19,6 +19,8 @@ if [ "$#" -gt 2 ]; then
   PORT=$3
 fi
 
+mkdir -p totient
+
 TARGET=totient/$(echo $1 | awk -F "/" '{print $2}').totient
 echo $TRACKER:$PORT > $TARGET
 echo $1 >> $TARGET
