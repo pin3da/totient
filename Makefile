@@ -9,6 +9,7 @@ all: dir $(TARGET)/peer $(TARGET)/tracker $(TARGET)/t_server
 dir:
 	mkdir -p $(TARGET)/files
 	mkdir -p $(TARGET)/pieces
+	mkdir -p $(TARGET)/totient
 
 $(TARGET)/peer: $(SOURCE)/peer.cc
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET)/peer $(SOURCE)/peer.cc
